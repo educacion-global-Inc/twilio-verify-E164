@@ -552,6 +552,13 @@
         let invalidNumbers = [];
         let duplicateNumbers = [];
 
+        // HTML escape function to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         // Toggle country code input
         document.getElementById('addCountryCode').addEventListener('change', function() {
             document.getElementById('countryCodeGroup').style.display = 
@@ -738,8 +745,8 @@
             if (invalidNumbers.length > 0) {
                 invalidList.innerHTML = invalidNumbers.map(result => 
                     `<div class="result-item invalid">
-                        ${result.original}
-                        <div class="error-reason">${result.errors.join(', ')}</div>
+                        ${escapeHtml(result.original)}
+                        <div class="error-reason">${result.errors.map(e => escapeHtml(e)).join(', ')}</div>
                     </div>`
                 ).join('');
             } else {

@@ -346,6 +346,13 @@
         const copyBtn = document.getElementById('copyBtn');
         let validatedNumber = '';
 
+        // HTML escape function to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         // Real-time validation feedback
         phoneInput.addEventListener('input', function() {
             if (this.value.length > 0) {
@@ -444,7 +451,7 @@
                     
                     let errorHtml = '<ul class="error-list">';
                     result.errors.forEach(error => {
-                        errorHtml += `<li>${error}</li>`;
+                        errorHtml += `<li>${escapeHtml(error)}</li>`;
                     });
                     errorHtml += '</ul>';
                     
