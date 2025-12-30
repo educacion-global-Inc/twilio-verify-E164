@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E.164 Campaign Validator & Sender - Twilio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 { color: #333; margin-bottom: 10px; font-size: 32px; text-align: center; }
+        .subtitle { color: #666; text-align: center; margin-bottom: 30px; font-size: 14px; }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        
+        .config-section {
+            background: #fff8e1;
+            border-left: 4px solid #ffa726;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+        }
+        
+        .config-section.configured {
+            background: #e8f5e9;
+            border-left-color: #66bb6a;
+        }
+        
+        .config-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .config-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .config-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .config-status.not-configured {
+            background: #ffcc80;
+            color: #e65100;
+        }
+        
+        .config-status.configured {
+            background: #a5d6a7;
+            color: #2e7d32;
+        }
+        
+        .config-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .btn-warning:hover:not(:disabled) {
+            background: #d97706;
+        }
+        
+        button:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .alert.show { display: block; }
+        .alert.success { background: #d1fae5; border: 1px solid #10b981; color: #065f46; }
+        .alert.error { background: #fee2e2; border: 1px solid #ef4444; color: #991b1b; }
+        
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+        }
+        
+        .input-section {
+            background: #f9fafb;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Single Validator</a>
+        
+        <h1>🚀 E.164 Campaign Validator & Sender</h1>
+        <p class="subtitle">Validate and send WhatsApp/SMS campaigns with Twilio</p>
+
+        <div id="alertBox" class="alert"></div>
+
+        <!-- Twilio Configuration -->
+        <div class="config-section" id="configSection">
+            <div class="config-header">
+                <div class="config-title"><i class="fas fa-cog"></i> Twilio Configuration</div>
+                <span class="config-status not-configured" id="configStatus">Not Configured</span>
+            </div>
+            
+            <div class="config-form">
+                <div class="form-group">
+                    <label for="accountSid">Account SID *</label>
+                    <input type="text" id="accountSid" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+                </div>
+                <div class="form-group">
+                    <label for="authToken">Auth Token *</label>
+                    <input type="password" id="authToken" placeholder="your_auth_token_here">
+                </div>
+                <div class="form-group">
+                    <label for="fromNumber">From Number *</label>
+                    <input type="text" id="fromNumber" placeholder="+14155552671">
+                </div>
+                <div class="form-group">
+                    <button class="btn-primary" onclick="saveConfig()">
+                        <i class="fas fa-save"></i> Save Configuration
+                    </button>
+                </div>
+            </div>
+            <p style="margin-top: 10px; font-size: 12px; color: #666;">
+                <i class="fas fa-info-circle"></i> Credentials are stored locally in your browser (localStorage)
+            </p>
+        </div>
+
+        <!-- Message Configuration -->
+        <div class="input-section">
+            <div class="section-title"><i class="fas fa-envelope"></i> Message Configuration</div>
+            
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label>Message Type *</label>
+                <div style="display: flex; gap: 20px;">
+                    <label><input type="radio" name="messageType" value="whatsapp" checked> WhatsApp</label>
+                    <label><input type="radio" name="messageType" value="sms"> SMS</label>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label for="campaignId">Campaign ID (Optional)</label>
+                <input type="text" id="campaignId" placeholder="e.g., SUMMER2024">
+            </div>
+
+            <div class="form-group">
+                <label for="messageText">Message Text *</label>
+                <textarea id="messageText" placeholder="Enter your message here...">Hello! This is a test message from Twilio E.164 Campaign Manager.</textarea>
+            </div>
+        </div>
+
+        <!-- Phone Numbers -->
+        <div class="input-section">
+            <div class="section-title"><i class="fas fa-phone"></i> Phone Numbers</div>
+            
+            <div class="form-group">
+                <textarea id="phoneNumbers" placeholder="Enter phone numbers (one per line):
++14155552671
++525555551234"></textarea>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" onclick="validateNumbers()" id="validateBtn">
+                    <i class="fas fa-check-circle"></i> Validate Numbers
+                </button>
+                <button class="btn-warning" onclick="sendCampaign()" id="sendBtn" disabled>
+                    <i class="fas fa-paper-plane"></i> Send Campaign
+                </button>
+            </div>
+
+            <div id="results" style="margin-top: 20px; display: none;">
+                <h3>Results</h3>
+                <div id="resultsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let config = { accountSid: '', authToken: '', fromNumber: '' };
+        let validNumbers = [];
+
+        // Load configuration on page load
+        window.addEventListener('load', () => {
+            loadConfig();
+        });
+
+        function loadConfig() {
+            try {
+                const stored = localStorage.getItem('twilioConfig');
+                if (stored) {
+                    config = JSON.parse(stored);
+                    document.getElementById('accountSid').value = config.accountSid || '';
+                    document.getElementById('authToken').value = config.authToken || '';
+                    document.getElementById('fromNumber').value = config.fromNumber || '';
+                    updateConfigStatus();
+                }
+            } catch (error) {
+                console.error('Error loading config:', error);
+            }
+        }
+
+        function saveConfig() {
+            const accountSid = document.getElementById('accountSid').value.trim();
+            const authToken = document.getElementById('authToken').value.trim();
+            const fromNumber = document.getElementById('fromNumber').value.trim();
+
+            if (!accountSid || !authToken || !fromNumber) {
+                showAlert('Please fill in all configuration fields', 'error');
+                return;
+            }
+
+            if (!accountSid.startsWith('AC') || accountSid.length < 30) {
+                showAlert('Invalid Account SID format', 'error');
+                return;
+            }
+
+            config = { accountSid, authToken, fromNumber };
+            localStorage.setItem('twilioConfig', JSON.stringify(config));
+            updateConfigStatus();
+            showAlert('Configuration saved successfully!', 'success');
+        }
+
+        function isConfigured() {
+            return config.accountSid && config.authToken && config.fromNumber;
+        }
+
+        function updateConfigStatus() {
+            const statusEl = document.getElementById('configStatus');
+            const sectionEl = document.getElementById('configSection');
+            
+            if (isConfigured()) {
+                statusEl.textContent = '✓ Configured';
+                statusEl.className = 'config-status configured';
+                sectionEl.className = 'config-section configured';
+            } else {
+                statusEl.textContent = 'Not Configured';
+                statusEl.className = 'config-status not-configured';
+                sectionEl.className = 'config-section';
+            }
+        }
+
+        function showAlert(message, type = 'info') {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.textContent = message;
+            alertBox.className = `alert ${type} show`;
+            setTimeout(() => alertBox.classList.remove('show'), 5000);
+        }
+
+        function validateE164(phoneNumber) {
+            const trimmed = phoneNumber.trim();
+            if (!trimmed.startsWith('+')) return { isValid: false, formatted: '', errors: ['Missing + prefix'] };
+            
+            const digitsOnly = trimmed.substring(1).replace(/\D/g, '');
+            if (digitsOnly.length < 7 || digitsOnly.length > 15) {
+                return { isValid: false, formatted: '', errors: ['Invalid length'] };
+            }
+            
+            return { isValid: true, formatted: '+' + digitsOnly, errors: [] };
+        }
+
+        function validateNumbers() {
+            const input = document.getElementById('phoneNumbers').value.trim();
+            if (!input) {
+                showAlert('Please enter phone numbers', 'error');
+                return;
+            }
+
+            const numbers = input.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+            validNumbers = [];
+            let invalidCount = 0;
+
+            numbers.forEach(number => {
+                const result = validateE164(number);
+                if (result.isValid) {
+                    validNumbers.push(result.formatted);
+                } else {
+                    invalidCount++;
+                }
+            });
+
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('resultsList').innerHTML = `
+                <p style="padding: 10px; background: #e8f5e9; border-radius: 5px; margin: 10px 0;">
+                    ✅ Valid: ${validNumbers.length} | ❌ Invalid: ${invalidCount}
+                </p>
+            `;
+
+            if (validNumbers.length > 0 && isConfigured()) {
+                document.getElementById('sendBtn').disabled = false;
+            }
+
+            showAlert(`Validation complete! ${validNumbers.length} valid numbers`, 'success');
+        }
+
+        async function sendCampaign() {
+            if (!isConfigured()) {
+                showAlert('Please configure Twilio credentials first', 'error');
+                return;
+            }
+
+            if (validNumbers.length === 0) {
+                showAlert('No valid numbers to send to', 'error');
+                return;
+            }
+
+            const messageText = document.getElementById('messageText').value.trim();
+            if (!messageText) {
+                showAlert('Please enter a message', 'error');
+                return;
+            }
+
+            const messageType = document.querySelector('input[name="messageType"]:checked').value;
+            const campaignId = document.getElementById('campaignId').value.trim();
+
+            if (!confirm(`Send ${messageType.toUpperCase()} to ${validNumbers.length} numbers?`)) {
+                return;
+            }
+
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+            let successCount = 0;
+            let failureCount = 0;
+
+            for (const number of validNumbers) {
+                try {
+                    const endpoint = messageType === 'whatsapp' ? '/api/send-whatsapp' : '/api/send-sms';
+                    const response = await fetch(`http://localhost:3000${endpoint}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            to: number,
+                            from: config.fromNumber,
+                            message: messageText,
+                            accountSid: config.accountSid,
+                            authToken: config.authToken,
+                            campaignId: campaignId
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        successCount++;
+                    } else {
+                        failureCount++;
+                    }
+                } catch (error) {
+                    failureCount++;
+                }
+
+                // Small delay to avoid rate limiting
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Campaign';
+
+            document.getElementById('resultsList').innerHTML += `
+                <p style="padding: 10px; background: ${successCount > 0 ? '#d1fae5' : '#fee2e2'}; border-radius: 5px; margin: 10px 0;">
+                    📤 Sent: ${successCount} | ❌ Failed: ${failureCount}
+                </p>
+            `;
+
+            showAlert(`Campaign complete! ${successCount} sent, ${failureCount} failed`, successCount > 0 ? 'success' : 'error');
+        }
+    </script>
+</body>
+</html>
