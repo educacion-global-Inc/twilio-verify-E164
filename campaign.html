@@ -648,8 +648,8 @@
                     
                     numbers = numbers.map(num => {
                         if (!num.startsWith('+')) {
-                            // Remove any leading 0 from the number
-                            const cleanNum = num.replace(/^0+/, '');
+                            // Remove single leading 0 from the number (common in some countries)
+                            const cleanNum = num.replace(/^0/, '');
                             return normalizedPrefix + cleanNum;
                         }
                         return num;
