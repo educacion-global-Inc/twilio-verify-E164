@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E.164 Phone Number Validator - Twilio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 5px;
+        }
+
+        .info-box h3 {
+            color: #667eea;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .info-box p {
+            color: #555;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .info-box code {
+            background: #e0e7ff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .examples {
+            margin-top: 10px;
+            font-size: 13px;
+        }
+
+        .examples div {
+            margin: 5px 0;
+        }
+
+        .valid-example {
+            color: #059669;
+        }
+
+        .invalid-example {
+            color: #dc2626;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            font-family: 'Courier New', monospace;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        input[type="text"].valid {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+
+        input[type="text"].invalid {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-validate {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-validate:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-clear {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-clear:hover {
+            background: #d1d5db;
+        }
+
+        .btn-copy {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-copy:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-copy:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result.valid {
+            background: #f0fdf4;
+            border: 2px solid #10b981;
+        }
+
+        .result.invalid {
+            background: #fef2f2;
+            border: 2px solid #ef4444;
+        }
+
+        .result-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result.valid .result-title {
+            color: #059669;
+        }
+
+        .result.invalid .result-title {
+            color: #dc2626;
+        }
+
+        .result-content {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .formatted-number {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 10px 0;
+            text-align: center;
+            color: #059669;
+        }
+
+        .error-list {
+            margin-top: 10px;
+            padding-left: 20px;
+        }
+
+        .error-list li {
+            margin: 5px 0;
+            color: #dc2626;
+        }
+
+        .campaign-link {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .campaign-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .campaign-link a:hover {
+            color: #5568d3;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 E.164 Phone Validator</h1>
+        <p class="subtitle">Validate phone numbers for Twilio WhatsApp & Voice</p>
+
+        <div class="info-box">
+            <h3>What is E.164 Format?</h3>
+            <p>
+                E.164 is the international phone number format required by Twilio:
+                <code>[+] [country code] [subscriber number]</code>
+            </p>
+            <div class="examples">
+                <div class="valid-example">✓ Valid: +14155552671 (USA)</div>
+                <div class="valid-example">✓ Valid: +525555551234 (Mexico)</div>
+                <div class="invalid-example">✗ Invalid: (415) 555-2671</div>
+                <div class="invalid-example">✗ Invalid: 14155552671 (missing +)</div>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="phoneNumber">Enter Phone Number:</label>
+            <input 
+                type="text" 
+                id="phoneNumber" 
+                placeholder="+14155552671"
+                autocomplete="tel"
+            >
+        </div>
+
+        <div class="button-group">
+            <button class="btn-validate" onclick="validatePhone()">Validate Number</button>
+            <button class="btn-clear" onclick="clearAll()">Clear</button>
+        </div>
+
+        <button class="btn-copy" id="copyBtn" onclick="copyToClipboard()" disabled>
+            📋 Copy Valid Number
+        </button>
+
+        <div id="result" class="result"></div>
+
+        <div class="campaign-link">
+            <a href="campaign.html">
+                🚀 Need to validate multiple numbers? Try Campaign Mode →
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const phoneInput = document.getElementById('phoneNumber');
+        const resultDiv = document.getElementById('result');
+        const copyBtn = document.getElementById('copyBtn');
+        let validatedNumber = '';
+
+        // Real-time validation feedback
+        phoneInput.addEventListener('input', function() {
+            if (this.value.length > 0) {
+                const result = validateE164(this.value);
+                if (result.isValid) {
+                    this.classList.remove('invalid');
+                    this.classList.add('valid');
+                } else {
+                    this.classList.remove('valid');
+                    this.classList.add('invalid');
+                }
+            } else {
+                this.classList.remove('valid', 'invalid');
+            }
+        });
+
+        // Allow Enter key to validate
+        phoneInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                validatePhone();
+            }
+        });
+
+        function validateE164(phoneNumber) {
+            const errors = [];
+            
+            // Remove whitespace for checking
+            const trimmed = phoneNumber.trim();
+            
+            if (!trimmed) {
+                return { isValid: false, errors: ['Phone number is empty'] };
+            }
+
+            // Check if starts with +
+            if (!trimmed.startsWith('+')) {
+                errors.push('Number must start with + sign');
+            }
+
+            // Extract digits only (after the +)
+            const digitsOnly = trimmed.substring(1).replace(/\D/g, '');
+            
+            // Check for non-digit characters after +
+            const afterPlus = trimmed.substring(1);
+            if (afterPlus.replace(/\d/g, '').length > 0) {
+                errors.push('Number can only contain digits after the + sign (no spaces, dashes, or parentheses)');
+            }
+
+            // Check length (1-15 digits)
+            if (digitsOnly.length < 1) {
+                errors.push('Number must contain at least 1 digit after the + sign');
+            } else if (digitsOnly.length > 15) {
+                errors.push('Number cannot exceed 15 digits (currently ' + digitsOnly.length + ' digits)');
+            }
+
+            // Check country code (should be 1-3 digits)
+            if (digitsOnly.length > 0 && digitsOnly.length < 4) {
+                // Number is too short to be valid (need country code + subscriber number)
+                if (digitsOnly.length < 7) {
+                    errors.push('Number appears too short (minimum ~7 digits for country code + subscriber number)');
+                }
+            }
+
+            const isValid = errors.length === 0 && trimmed.startsWith('+');
+            const formatted = isValid ? '+' + digitsOnly : '';
+
+            return {
+                isValid: isValid,
+                formatted: formatted,
+                errors: errors,
+                original: phoneNumber
+            };
+        }
+
+        function validatePhone() {
+            const phoneNumber = phoneInput.value;
+            const result = validateE164(phoneNumber);
+
+            resultDiv.classList.remove('valid', 'invalid', 'show');
+            
+            setTimeout(() => {
+                if (result.isValid) {
+                    validatedNumber = result.formatted;
+                    copyBtn.disabled = false;
+                    resultDiv.className = 'result valid show';
+                    resultDiv.innerHTML = `
+                        <div class="result-title">
+                            ✅ Valid E.164 Format
+                        </div>
+                        <div class="result-content">
+                            <p>Your phone number is correctly formatted for Twilio!</p>
+                            <div class="formatted-number">${result.formatted}</div>
+                            <p><strong>Ready to use with Twilio API</strong></p>
+                        </div>
+                    `;
+                } else {
+                    validatedNumber = '';
+                    copyBtn.disabled = true;
+                    resultDiv.className = 'result invalid show';
+                    
+                    let errorHtml = '<ul class="error-list">';
+                    result.errors.forEach(error => {
+                        errorHtml += `<li>${error}</li>`;
+                    });
+                    errorHtml += '</ul>';
+                    
+                    resultDiv.innerHTML = `
+                        <div class="result-title">
+                            ❌ Invalid Format
+                        </div>
+                        <div class="result-content">
+                            <p><strong>Issues found:</strong></p>
+                            ${errorHtml}
+                            <p style="margin-top: 15px;">
+                                <strong>Correct format:</strong> <code>+[country code][number]</code><br>
+                                <strong>Example:</strong> <code>+14155552671</code>
+                            </p>
+                        </div>
+                    `;
+                }
+            }, 50);
+        }
+
+        function clearAll() {
+            phoneInput.value = '';
+            phoneInput.classList.remove('valid', 'invalid');
+            resultDiv.classList.remove('show');
+            validatedNumber = '';
+            copyBtn.disabled = true;
+            phoneInput.focus();
+        }
+
+        function copyToClipboard() {
+            if (validatedNumber) {
+                navigator.clipboard.writeText(validatedNumber).then(() => {
+                    const originalText = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '✓ Copied!';
+                    copyBtn.style.background = '#059669';
+                    
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalText;
+                        copyBtn.style.background = '#10b981';
+                    }, 2000);
+                }).catch(err => {
+                    alert('Failed to copy: ' + err);
+                });
+            }
+        }
+
+        // Focus on input when page loads
+        window.addEventListener('load', () => {
+            phoneInput.focus();
+        });
+    </script>
+</body>
+</html>
