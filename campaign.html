@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E.164 Campaign Validator - Twilio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .back-link:hover {
+            color: #5568d3;
+        }
+
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 5px;
+        }
+
+        .info-box h3 {
+            color: #667eea;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .info-box p {
+            color: #555;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .input-section {
+            background: #f9fafb;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .options-group {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .option input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .option label {
+            cursor: pointer;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .country-code-input {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .country-code-input input {
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            width: 150px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .file-upload {
+            margin-top: 15px;
+            padding: 20px;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-upload:hover {
+            border-color: #667eea;
+            background: #f9fafb;
+        }
+
+        .file-upload input[type="file"] {
+            display: none;
+        }
+
+        .file-upload-label {
+            cursor: pointer;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-success:disabled,
+        .btn-primary:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-bar {
+            display: none;
+            margin-top: 20px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+            height: 30px;
+        }
+
+        .progress-bar.show {
+            display: block;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .stats {
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .stats.show {
+            display: grid;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card.valid {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .stat-card.invalid {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .stat-card.duplicate {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .results-section {
+            display: none;
+            margin-top: 25px;
+        }
+
+        .results-section.show {
+            display: block;
+        }
+
+        .results-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6b7280;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab:hover {
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .results-list {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .result-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 5px;
+            border-left: 4px solid #10b981;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .result-item.invalid {
+            border-left-color: #ef4444;
+        }
+
+        .result-item.duplicate {
+            border-left-color: #f59e0b;
+        }
+
+        .error-reason {
+            color: #dc2626;
+            font-size: 12px;
+            margin-top: 5px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #9ca3af;
+        }
+
+        .download-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn-primary {
+                min-width: auto;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Single Validator</a>
+        
+        <h1>🚀 E.164 Campaign Validator</h1>
+        <p class="subtitle">Validate multiple phone numbers in bulk for Twilio campaigns</p>
+
+        <div class="info-box">
+            <h3>Campaign Mode Features</h3>
+            <p>
+                📋 Validate thousands of numbers at once • 🔍 Auto-detect duplicates • 
+                📥 Import from files • 📤 Export valid numbers • ✨ Auto-formatting
+            </p>
+        </div>
+
+        <div class="input-section">
+            <div class="section-title">📝 Input Phone Numbers</div>
+            
+            <div class="options-group">
+                <div class="option">
+                    <input type="checkbox" id="removeDuplicates" checked>
+                    <label for="removeDuplicates">Remove Duplicates</label>
+                </div>
+                <div class="option">
+                    <input type="checkbox" id="addCountryCode">
+                    <label for="addCountryCode">Add Country Code Prefix</label>
+                </div>
+            </div>
+
+            <div class="country-code-input" id="countryCodeGroup" style="display: none;">
+                <label>Country Code (e.g., +1, +52):</label>
+                <input type="text" id="countryCodePrefix" placeholder="+1" maxlength="4">
+            </div>
+
+            <textarea 
+                id="phoneNumbers" 
+                placeholder="Enter phone numbers (one per line):
++14155552671
++525555551234
++442071838750"
+            ></textarea>
+
+            <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                <input type="file" id="fileInput" accept=".txt,.csv" onchange="handleFileUpload(event)">
+                <label class="file-upload-label">
+                    📁 Or click to upload a file (TXT or CSV)
+                </label>
+                <p style="font-size: 12px; color: #9ca3af; margin-top: 5px;">
+                    Supports one number per line or CSV with numbers in first column
+                </p>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" onclick="validateCampaign()">
+                    🔍 Validate All Numbers
+                </button>
+                <button class="btn-secondary" onclick="clearCampaign()">Clear All</button>
+            </div>
+
+            <div id="progressBar" class="progress-bar">
+                <div id="progressFill" class="progress-fill">0%</div>
+            </div>
+        </div>
+
+        <div id="stats" class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalCount">0</div>
+                <div class="stat-label">Total Numbers</div>
+            </div>
+            <div class="stat-card valid">
+                <div class="stat-number" id="validCount">0</div>
+                <div class="stat-label">Valid Numbers</div>
+            </div>
+            <div class="stat-card invalid">
+                <div class="stat-number" id="invalidCount">0</div>
+                <div class="stat-label">Invalid Numbers</div>
+            </div>
+            <div class="stat-card duplicate">
+                <div class="stat-number" id="duplicateCount">0</div>
+                <div class="stat-label">Duplicates Found</div>
+            </div>
+        </div>
+
+        <div id="resultsSection" class="results-section">
+            <div class="results-tabs">
+                <button class="tab active" onclick="switchTab('valid')">
+                    ✅ Valid Numbers (<span id="validTabCount">0</span>)
+                </button>
+                <button class="tab" onclick="switchTab('invalid')">
+                    ❌ Invalid Numbers (<span id="invalidTabCount">0</span>)
+                </button>
+                <button class="tab" onclick="switchTab('duplicates')">
+                    🔄 Duplicates (<span id="duplicateTabCount">0</span>)
+                </button>
+            </div>
+
+            <div id="validTab" class="tab-content active">
+                <div class="download-buttons">
+                    <button class="btn-success" onclick="downloadResults('valid', 'txt')" id="downloadValidTxt">
+                        📥 Download as TXT
+                    </button>
+                    <button class="btn-success" onclick="downloadResults('valid', 'csv')" id="downloadValidCsv">
+                        📥 Download as CSV
+                    </button>
+                    <button class="btn-success" onclick="copyAllValid()" id="copyAllValidBtn">
+                        📋 Copy All Valid
+                    </button>
+                </div>
+                <div class="results-list" id="validList">
+                    <div class="empty-state">No valid numbers yet</div>
+                </div>
+            </div>
+
+            <div id="invalidTab" class="tab-content">
+                <div class="download-buttons">
+                    <button class="btn-secondary" onclick="downloadResults('invalid', 'txt')" id="downloadInvalidTxt">
+                        📥 Download Invalid (TXT)
+                    </button>
+                    <button class="btn-secondary" onclick="downloadResults('invalid', 'csv')" id="downloadInvalidCsv">
+                        📥 Download Invalid (CSV)
+                    </button>
+                </div>
+                <div class="results-list" id="invalidList">
+                    <div class="empty-state">No invalid numbers</div>
+                </div>
+            </div>
+
+            <div id="duplicatesTab" class="tab-content">
+                <div class="results-list" id="duplicatesList">
+                    <div class="empty-state">No duplicates found</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let validNumbers = [];
+        let invalidNumbers = [];
+        let duplicateNumbers = [];
+
+        // HTML escape function to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Toggle country code input
+        document.getElementById('addCountryCode').addEventListener('change', function() {
+            document.getElementById('countryCodeGroup').style.display = 
+                this.checked ? 'flex' : 'none';
+        });
+
+        function validateE164(phoneNumber) {
+            const errors = [];
+            const trimmed = phoneNumber.trim();
+            
+            if (!trimmed) {
+                return { isValid: false, errors: ['Empty'] };
+            }
+
+            if (!trimmed.startsWith('+')) {
+                errors.push('Missing + prefix');
+            }
+
+            const digitsOnly = trimmed.substring(1).replace(/\D/g, '');
+            const afterPlus = trimmed.substring(1);
+            
+            if (afterPlus.replace(/\d/g, '').length > 0) {
+                errors.push('Contains invalid characters');
+            }
+
+            if (digitsOnly.length < 1) {
+                errors.push('No digits after +');
+            } else if (digitsOnly.length > 15) {
+                errors.push(`Too long (${digitsOnly.length} digits, max 15)`);
+            } else if (digitsOnly.length < 7) {
+                errors.push('Too short (minimum ~7 digits)');
+            }
+
+            const isValid = errors.length === 0 && trimmed.startsWith('+');
+            const formatted = isValid ? '+' + digitsOnly : '';
+
+            return {
+                isValid: isValid,
+                formatted: formatted,
+                errors: errors,
+                original: phoneNumber
+            };
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                const textarea = document.getElementById('phoneNumbers');
+                
+                // Parse CSV or TXT - extract numbers from first column if CSV
+                const lines = content.split('\n');
+                const numbers = lines.map(line => {
+                    // If CSV, take first column
+                    const firstColumn = line.split(',')[0];
+                    return firstColumn.trim();
+                }).filter(line => line.length > 0);
+                
+                textarea.value = numbers.join('\n');
+            };
+            reader.readAsText(file);
+        }
+
+        async function validateCampaign() {
+            const textarea = document.getElementById('phoneNumbers');
+            const input = textarea.value.trim();
+            
+            if (!input) {
+                alert('Please enter phone numbers to validate');
+                return;
+            }
+
+            // Parse input
+            let numbers = input.split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
+
+            // Add country code if option is checked
+            if (document.getElementById('addCountryCode').checked) {
+                const prefix = document.getElementById('countryCodePrefix').value.trim();
+                if (prefix) {
+                    // Ensure prefix starts with +
+                    const normalizedPrefix = prefix.startsWith('+') ? prefix : '+' + prefix;
+                    
+                    numbers = numbers.map(num => {
+                        if (!num.startsWith('+')) {
+                            // Remove single leading 0 from the number (common in some countries)
+                            const cleanNum = num.replace(/^0/, '');
+                            return normalizedPrefix + cleanNum;
+                        }
+                        return num;
+                    });
+                }
+            }
+
+            // Show progress
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            progressBar.classList.add('show');
+
+            // Reset results
+            validNumbers = [];
+            invalidNumbers = [];
+            duplicateNumbers = [];
+            const seenNumbers = new Set();
+
+            // Process numbers
+            const total = numbers.length;
+            const removeDuplicates = document.getElementById('removeDuplicates').checked;
+
+            for (let i = 0; i < total; i++) {
+                const number = numbers[i];
+                const result = validateE164(number);
+
+                if (result.isValid) {
+                    // Check for duplicates
+                    if (seenNumbers.has(result.formatted)) {
+                        duplicateNumbers.push({
+                            number: result.formatted,
+                            original: number
+                        });
+                        if (!removeDuplicates) {
+                            validNumbers.push(result);
+                        }
+                    } else {
+                        seenNumbers.add(result.formatted);
+                        validNumbers.push(result);
+                    }
+                } else {
+                    invalidNumbers.push(result);
+                }
+
+                // Update progress
+                const progress = Math.round(((i + 1) / total) * 100);
+                progressFill.style.width = progress + '%';
+                progressFill.textContent = progress + '%';
+
+                // Allow UI to update
+                if (i % 100 === 0) {
+                    await new Promise(resolve => setTimeout(resolve, 0));
+                }
+            }
+
+            // Hide progress
+            setTimeout(() => {
+                progressBar.classList.remove('show');
+            }, 500);
+
+            // Show results
+            displayResults();
+        }
+
+        function displayResults() {
+            // Update stats
+            document.getElementById('totalCount').textContent = 
+                validNumbers.length + invalidNumbers.length + duplicateNumbers.length;
+            document.getElementById('validCount').textContent = validNumbers.length;
+            document.getElementById('invalidCount').textContent = invalidNumbers.length;
+            document.getElementById('duplicateCount').textContent = duplicateNumbers.length;
+
+            document.getElementById('stats').classList.add('show');
+            document.getElementById('resultsSection').classList.add('show');
+
+            // Update tab counts
+            document.getElementById('validTabCount').textContent = validNumbers.length;
+            document.getElementById('invalidTabCount').textContent = invalidNumbers.length;
+            document.getElementById('duplicateTabCount').textContent = duplicateNumbers.length;
+
+            // Display valid numbers
+            const validList = document.getElementById('validList');
+            if (validNumbers.length > 0) {
+                validList.innerHTML = validNumbers.map(result => 
+                    `<div class="result-item">${result.formatted}</div>`
+                ).join('');
+            } else {
+                validList.innerHTML = '<div class="empty-state">No valid numbers found</div>';
+            }
+
+            // Display invalid numbers
+            const invalidList = document.getElementById('invalidList');
+            if (invalidNumbers.length > 0) {
+                invalidList.innerHTML = invalidNumbers.map(result => 
+                    `<div class="result-item invalid">
+                        ${escapeHtml(result.original)}
+                        <div class="error-reason">${result.errors.map(e => escapeHtml(e)).join(', ')}</div>
+                    </div>`
+                ).join('');
+            } else {
+                invalidList.innerHTML = '<div class="empty-state">No invalid numbers found</div>';
+            }
+
+            // Display duplicates
+            const duplicatesList = document.getElementById('duplicatesList');
+            if (duplicateNumbers.length > 0) {
+                duplicatesList.innerHTML = duplicateNumbers.map(dup => 
+                    `<div class="result-item duplicate">${dup.number}</div>`
+                ).join('');
+            } else {
+                duplicatesList.innerHTML = '<div class="empty-state">No duplicates found</div>';
+            }
+        }
+
+        function switchTab(tabName) {
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            // Add active class to selected tab
+            const tabs = document.querySelectorAll('.tab');
+            if (tabName === 'valid') {
+                tabs[0].classList.add('active');
+                document.getElementById('validTab').classList.add('active');
+            } else if (tabName === 'invalid') {
+                tabs[1].classList.add('active');
+                document.getElementById('invalidTab').classList.add('active');
+            } else if (tabName === 'duplicates') {
+                tabs[2].classList.add('active');
+                document.getElementById('duplicatesTab').classList.add('active');
+            }
+        }
+
+        function downloadResults(type, format) {
+            let content = '';
+            let filename = '';
+
+            if (type === 'valid') {
+                if (format === 'txt') {
+                    content = validNumbers.map(r => r.formatted).join('\n');
+                    filename = 'valid-numbers.txt';
+                } else {
+                    content = 'Phone Number\n' + validNumbers.map(r => r.formatted).join('\n');
+                    filename = 'valid-numbers.csv';
+                }
+            } else if (type === 'invalid') {
+                if (format === 'txt') {
+                    content = invalidNumbers.map(r => 
+                        `${r.original} - ${r.errors.join(', ')}`
+                    ).join('\n');
+                    filename = 'invalid-numbers.txt';
+                } else {
+                    content = 'Original Number,Errors\n' + invalidNumbers.map(r => 
+                        `"${r.original}","${r.errors.join('; ')}"`
+                    ).join('\n');
+                    filename = 'invalid-numbers.csv';
+                }
+            }
+
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function copyAllValid() {
+            if (validNumbers.length === 0) {
+                alert('No valid numbers to copy');
+                return;
+            }
+
+            const text = validNumbers.map(r => r.formatted).join('\n');
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('copyAllValidBtn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✓ Copied!';
+                btn.style.background = '#059669';
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.background = '#10b981';
+                }, 2000);
+            }).catch(err => {
+                alert('Failed to copy: ' + err);
+            });
+        }
+
+        function clearCampaign() {
+            document.getElementById('phoneNumbers').value = '';
+            document.getElementById('stats').classList.remove('show');
+            document.getElementById('resultsSection').classList.remove('show');
+            validNumbers = [];
+            invalidNumbers = [];
+            duplicateNumbers = [];
+            document.getElementById('fileInput').value = '';
+        }
+    </script>
+</body>
+</html>
