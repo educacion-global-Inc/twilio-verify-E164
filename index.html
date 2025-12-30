@@ -400,12 +400,9 @@
                 errors.push('Number cannot exceed 15 digits (currently ' + digitsOnly.length + ' digits)');
             }
 
-            // Check country code (should be 1-3 digits)
-            if (digitsOnly.length > 0 && digitsOnly.length < 4) {
-                // Number is too short to be valid (need country code + subscriber number)
-                if (digitsOnly.length < 7) {
-                    errors.push('Number appears too short (minimum ~7 digits for country code + subscriber number)');
-                }
+            // Check minimum length (country code + subscriber number)
+            if (digitsOnly.length > 0 && digitsOnly.length < 7) {
+                errors.push('Number appears too short (minimum ~7 digits for country code + subscriber number)');
             }
 
             const isValid = errors.length === 0 && trimmed.startsWith('+');

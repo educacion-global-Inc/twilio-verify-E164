@@ -636,11 +636,14 @@
             if (document.getElementById('addCountryCode').checked) {
                 const prefix = document.getElementById('countryCodePrefix').value.trim();
                 if (prefix) {
+                    // Ensure prefix starts with +
+                    const normalizedPrefix = prefix.startsWith('+') ? prefix : '+' + prefix;
+                    
                     numbers = numbers.map(num => {
                         if (!num.startsWith('+')) {
-                            // Remove any leading + or 0 from the number
-                            const cleanNum = num.replace(/^\+?0?/, '');
-                            return prefix + (prefix.endsWith('+') ? '' : '') + cleanNum;
+                            // Remove any leading 0 from the number
+                            const cleanNum = num.replace(/^0+/, '');
+                            return normalizedPrefix + cleanNum;
                         }
                         return num;
                     });
